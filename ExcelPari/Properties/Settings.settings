@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="TemplateLocation" Type="System.String" Scope="User">
-      <Value Profile="(Default)">D:\abc\NFL_Bewertung</Value>
+      <Value Profile="(Default)">C:\Workspaces\Parifizierung\Data\Parifizierung\Templates</Value>
     </Setting>
   </Settings>
 </SettingsFile>

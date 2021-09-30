@@ -1,13 +1,11 @@
-﻿using MdbPari.Properties;
-using InterfacesPari;
+﻿using InterfacesPari;
+using MdbPari.Properties;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MdbPari
 {
@@ -161,11 +159,12 @@ namespace MdbPari
         {
             // cmd.CommandText = "INSERT INTO Raum " + "([Top],[Lage],[Raum],[Widmung],[RNW],[Begrundung],[Nutzwert],[Flaeche],[ProjektId],[KategorieId],[AcadHandle]) "
             log.Debug("UpdateRaum");
-            var cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "UPDATE {0} SET Raum.[Top]=@Top,Raum.Lage=@Lage,Raum.Raum=@Raum,Raum.Widmung=@Widmung,Raum.RNW=@RNW,Raum.Begrundung=@Begrundung,Raum.Nutzwert=@Nutzwert,Raum.Flaeche=@Flaeche,Raum.KategorieId=@KategorieId where Raum.ProjektId=@ProjektId AND Raum.RaumID=@RaumID", "Raum");
-            cmd.Parameters.AddRange(new OleDbParameter[]
+            using (var cmd = myConnection.CreateCommand())
             {
+                cmd.Transaction = transaction;
+                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "UPDATE {0} SET Raum.[Top]=@Top,Raum.Lage=@Lage,Raum.Raum=@Raum,Raum.Widmung=@Widmung,Raum.RNW=@RNW,Raum.Begrundung=@Begrundung,Raum.Nutzwert=@Nutzwert,Raum.Flaeche=@Flaeche,Raum.KategorieId=@KategorieId where Raum.ProjektId=@ProjektId AND Raum.RaumID=@RaumID", "Raum");
+                cmd.Parameters.AddRange(new OleDbParameter[]
+                {
                 new OleDbParameter("@Top", raum.Top??Convert.DBNull),
                 new OleDbParameter("@Lage", raum.Lage??Convert.DBNull),
                 new OleDbParameter("@Raum", raum.Raum??Convert.DBNull),
@@ -177,9 +176,10 @@ namespace MdbPari
                 new OleDbParameter("@KategorieId", raum.KategorieId),
                 new OleDbParameter("@ProjektId", raum.ProjektId),
                 new OleDbParameter("@RaumID", raum.RaumId),
-            });
-            var result = cmd.ExecuteNonQuery();
-            return result;
+                });
+                var result = cmd.ExecuteNonQuery();
+                return result;
+            }
         }
 
         public int UpdateKategorie(IKategorieRecord kategorie)
@@ -192,12 +192,14 @@ namespace MdbPari
                 myConnection.ConnectionString = ConnectionString;
                 myConnection.Open();
 
-                var cmd = myConnection.CreateCommand();
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "UPDATE {0} SET Nutzwert=@Nutzwert where ProjektId=@ProjektId AND KategorieId=@KategorieId", "KATEGORIE");
-                cmd.Parameters.Add(new OleDbParameter("@Nutzwert", kategorie.Nutzwert));
-                cmd.Parameters.Add(new OleDbParameter("@ProjektId", kategorie.ProjektId));
-                cmd.Parameters.Add(new OleDbParameter("@KategorieId", kategorie.KategorieID));
-                result = cmd.ExecuteNonQuery();
+                using (var cmd = myConnection.CreateCommand())
+                {
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "UPDATE {0} SET Nutzwert=@Nutzwert where ProjektId=@ProjektId AND KategorieId=@KategorieId", "KATEGORIE");
+                    cmd.Parameters.Add(new OleDbParameter("@Nutzwert", kategorie.Nutzwert));
+                    cmd.Parameters.Add(new OleDbParameter("@ProjektId", kategorie.ProjektId));
+                    cmd.Parameters.Add(new OleDbParameter("@KategorieId", kategorie.KategorieID));
+                    result = cmd.ExecuteNonQuery();
+                }
                 myConnection.Close();
             }
             return result;
@@ -206,14 +208,16 @@ namespace MdbPari
 
         private int UpdateKategorie(IKategorieRecord kategorie, OleDbConnection myConnection, OleDbTransaction transaction)
         {
-            var cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "UPDATE {0} SET Nutzwert=@Nutzwert,RNW=@RNW where ProjektId=@ProjektId AND KategorieId=@KategorieId", "KATEGORIE");
-            cmd.Parameters.Add(new OleDbParameter("@Nutzwert", kategorie.Nutzwert));
-            cmd.Parameters.Add(new OleDbParameter("@RNW", kategorie.RNW));
-            cmd.Parameters.Add(new OleDbParameter("@ProjektId", kategorie.ProjektId));
-            cmd.Parameters.Add(new OleDbParameter("@KategorieId", kategorie.KategorieID));
-            return cmd.ExecuteNonQuery();
+            using (var cmd = myConnection.CreateCommand())
+            {
+                cmd.Transaction = transaction;
+                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "UPDATE {0} SET Nutzwert=@Nutzwert,RNW=@RNW where ProjektId=@ProjektId AND KategorieId=@KategorieId", "KATEGORIE");
+                cmd.Parameters.Add(new OleDbParameter("@Nutzwert", kategorie.Nutzwert));
+                cmd.Parameters.Add(new OleDbParameter("@RNW", kategorie.RNW));
+                cmd.Parameters.Add(new OleDbParameter("@ProjektId", kategorie.ProjektId));
+                cmd.Parameters.Add(new OleDbParameter("@KategorieId", kategorie.KategorieID));
+                return cmd.ExecuteNonQuery();
+            }
         }
 
         public int UpdateZuAbschlag(IZuAbschlagRecord zuAbschlagRec)
@@ -226,12 +230,14 @@ namespace MdbPari
                 myConnection.ConnectionString = ConnectionString;
                 myConnection.Open();
 
-                var cmd = myConnection.CreateCommand();
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "UPDATE {0} SET Prozent=@Prozent,Beschreibung=@Beschreibung where ZuAbschlagId=@ZuAbschlagId", ZU_ABSCHLAG_TABELLE);
-                cmd.Parameters.Add(new OleDbParameter("@Prozent", zuAbschlagRec.Prozent));
-                cmd.Parameters.Add(new OleDbParameter("@Beschreibung", zuAbschlagRec.Beschreibung ?? Convert.DBNull));
-                cmd.Parameters.Add(new OleDbParameter("@ZuAbschlagId", zuAbschlagRec.ZuAbschlagId));
-                result = cmd.ExecuteNonQuery();
+                using (var cmd = myConnection.CreateCommand())
+                {
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "UPDATE {0} SET Prozent=@Prozent,Beschreibung=@Beschreibung where ZuAbschlagId=@ZuAbschlagId", ZU_ABSCHLAG_TABELLE);
+                    cmd.Parameters.Add(new OleDbParameter("@Prozent", zuAbschlagRec.Prozent));
+                    cmd.Parameters.Add(new OleDbParameter("@Beschreibung", zuAbschlagRec.Beschreibung ?? Convert.DBNull));
+                    cmd.Parameters.Add(new OleDbParameter("@ZuAbschlagId", zuAbschlagRec.ZuAbschlagId));
+                    result = cmd.ExecuteNonQuery();
+                }
                 myConnection.Close();
             }
             return result;
@@ -305,32 +311,36 @@ namespace MdbPari
                 myConnection.ConnectionString = ConnectionString;
                 myConnection.Open();
 
-                var cmd = myConnection.CreateCommand();
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "select * from {0} where ProjektId={1}", "Wohnung", projektId);
-                var reader = cmd.ExecuteReader();
-                while (reader.Read())
+                using (var cmd = myConnection.CreateCommand())
                 {
-                    var wohnung = new SimpleWohnungRecord();
-                    object o = reader["ProjektID"];
-                    if (o != System.DBNull.Value) wohnung.ProjektId = (int)o;
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "select * from {0} where ProjektId={1}", "Wohnung", projektId);
+                    var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var wohnung = new SimpleWohnungRecord();
+                        object o = reader["ProjektID"];
+                        if (o != System.DBNull.Value) wohnung.ProjektId = (int)o;
 
-                    o = reader["Top"];
-                    if (o != System.DBNull.Value) wohnung.Top = o.ToString();
+                        o = reader["Top"];
+                        if (o != System.DBNull.Value) wohnung.Top = o.ToString();
 
-                    o = reader["Typ"];
-                    if (o != System.DBNull.Value) wohnung.Typ = o.ToString();
+                        o = reader["Typ"];
+                        if (o != System.DBNull.Value) wohnung.Typ = o.ToString();
 
-                    o = reader["WohnungId"];
-                    if (o != System.DBNull.Value) wohnung.WohnungId = (int)o;
+                        o = reader["WohnungId"];
+                        if (o != System.DBNull.Value) wohnung.WohnungId = (int)o;
 
-                    o = reader["Widmung"];
-                    if (o != System.DBNull.Value) wohnung.Widmung = o.ToString();
+                        o = reader["Widmung"];
+                        if (o != System.DBNull.Value) wohnung.Widmung = o.ToString();
 
-                    o = reader["Nutzwert"];
-                    if (o != System.DBNull.Value) wohnung.Nutzwert= o.ToString();
+                        o = reader["Nutzwert"];
+                        if (o != System.DBNull.Value) wohnung.Nutzwert = o.ToString();
 
-                    wohnungInfos.Add(wohnung);
+                        wohnungInfos.Add(wohnung);
+                    }
+                    reader.Close();
                 }
+
                 myConnection.Close();
             }
             return wohnungInfos;
@@ -345,37 +355,40 @@ namespace MdbPari
                 myConnection.ConnectionString = ConnectionString;
                 myConnection.Open();
 
-                var cmd = myConnection.CreateCommand();
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "select * from {0} where ProjektId={1} order by Top", "Kategorie", ProjektId);
-                var reader = cmd.ExecuteReader();
-                while (reader.Read())
+                using (var cmd = myConnection.CreateCommand())
                 {
-                    var kat = _Factory.CreateKategorie();
-                    object o = reader["ProjektID"];
-                    if (o != System.DBNull.Value) kat.ProjektId = (int)o;
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "select * from {0} where ProjektId={1} order by Top", "Kategorie", ProjektId);
+                    var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var kat = _Factory.CreateKategorie();
+                        object o = reader["ProjektID"];
+                        if (o != System.DBNull.Value) kat.ProjektId = (int)o;
 
-                    o = reader["KategorieID"];
-                    if (o != System.DBNull.Value) kat.KategorieID = (int)o;
+                        o = reader["KategorieID"];
+                        if (o != System.DBNull.Value) kat.KategorieID = (int)o;
 
-                    o = reader["Top"];
-                    if (o != System.DBNull.Value) kat.Top = o.ToString();
+                        o = reader["Top"];
+                        if (o != System.DBNull.Value) kat.Top = o.ToString();
 
-                    o = reader["Widmung"];
-                    if (o != System.DBNull.Value) kat.Widmung = o.ToString();
+                        o = reader["Widmung"];
+                        if (o != System.DBNull.Value) kat.Widmung = o.ToString();
 
-                    o = reader["RNW"];
-                    if (o != System.DBNull.Value) kat.RNW = o.ToString();
+                        o = reader["RNW"];
+                        if (o != System.DBNull.Value) kat.RNW = o.ToString();
 
-                    o = reader["Begrundung"];
-                    if (o != System.DBNull.Value) kat.Begrundung = o.ToString();
+                        o = reader["Begrundung"];
+                        if (o != System.DBNull.Value) kat.Begrundung = o.ToString();
 
-                    o = reader["Lage"];
-                    if (o != System.DBNull.Value) kat.Lage = o.ToString();
+                        o = reader["Lage"];
+                        if (o != System.DBNull.Value) kat.Lage = o.ToString();
 
-                    o = reader["Nutzwert"];
-                    if (o != System.DBNull.Value) kat.Nutzwert = Convert.ToDouble(o);
+                        o = reader["Nutzwert"];
+                        if (o != System.DBNull.Value) kat.Nutzwert = Convert.ToDouble(o);
 
-                    katInfos.Add(kat);
+                        katInfos.Add(kat);
+                    }
+                    reader.Close();
                 }
                 myConnection.Close();
             }
@@ -391,37 +404,40 @@ namespace MdbPari
                 myConnection.ConnectionString = ConnectionString;
                 myConnection.Open();
 
-                var cmd = myConnection.CreateCommand();
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "select * from {0} where ProjektId={1} order by Top", "Kategorie", ProjektId);
-                var reader = cmd.ExecuteReader();
-                while (reader.Read())
+                using (var cmd = myConnection.CreateCommand())
                 {
-                    var kat = _Factory.CreateZaKategorie();
-                    object o = reader["ProjektID"];
-                    if (o != System.DBNull.Value) kat.ProjektId = (int)o;
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "select * from {0} where ProjektId={1} order by Top", "Kategorie", ProjektId);
+                    var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var kat = _Factory.CreateZaKategorie();
+                        object o = reader["ProjektID"];
+                        if (o != System.DBNull.Value) kat.ProjektId = (int)o;
 
-                    o = reader["KategorieID"];
-                    if (o != System.DBNull.Value) kat.KategorieID = (int)o;
+                        o = reader["KategorieID"];
+                        if (o != System.DBNull.Value) kat.KategorieID = (int)o;
 
-                    o = reader["Top"];
-                    if (o != System.DBNull.Value) kat.Top = o.ToString();
+                        o = reader["Top"];
+                        if (o != System.DBNull.Value) kat.Top = o.ToString();
 
-                    o = reader["Widmung"];
-                    if (o != System.DBNull.Value) kat.Widmung = o.ToString();
+                        o = reader["Widmung"];
+                        if (o != System.DBNull.Value) kat.Widmung = o.ToString();
 
-                    o = reader["RNW"];
-                    if (o != System.DBNull.Value) kat.RNW = o.ToString();
+                        o = reader["RNW"];
+                        if (o != System.DBNull.Value) kat.RNW = o.ToString();
 
-                    o = reader["Begrundung"];
-                    if (o != System.DBNull.Value) kat.Begrundung = o.ToString();
+                        o = reader["Begrundung"];
+                        if (o != System.DBNull.Value) kat.Begrundung = o.ToString();
 
-                    o = reader["Lage"];
-                    if (o != System.DBNull.Value) kat.Lage = o.ToString();
+                        o = reader["Lage"];
+                        if (o != System.DBNull.Value) kat.Lage = o.ToString();
 
-                    o = reader["Nutzwert"];
-                    if (o != System.DBNull.Value) kat.Nutzwert = Convert.ToDouble(o);
+                        o = reader["Nutzwert"];
+                        if (o != System.DBNull.Value) kat.Nutzwert = Convert.ToDouble(o);
 
-                    katInfos.Add(kat);
+                        katInfos.Add(kat);
+                    }
+                    reader.Close();
                 }
                 myConnection.Close();
             }
@@ -450,25 +466,28 @@ namespace MdbPari
                 myConnection.ConnectionString = ConnectionString;
                 myConnection.Open();
 
-                var cmd = myConnection.CreateCommand();
-                cmd.CommandText = "select * from Projekt order by ProjektID";
-                var reader = cmd.ExecuteReader();
-                while (reader.Read())
+                using (var cmd = myConnection.CreateCommand())
                 {
-                    var pi = _Factory.CreateProjectInfo();
-                    object o = reader["ProjektID"];
-                    if (o != System.DBNull.Value) pi.ProjektId = (int)o;
+                    cmd.CommandText = "select * from Projekt order by ProjektID";
+                    var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var pi = _Factory.CreateProjectInfo();
+                        object o = reader["ProjektID"];
+                        if (o != System.DBNull.Value) pi.ProjektId = (int)o;
 
-                    o = reader["Bauvorhaben"];
-                    if (o != System.DBNull.Value) pi.Bauvorhaben = o.ToString();
+                        o = reader["Bauvorhaben"];
+                        if (o != System.DBNull.Value) pi.Bauvorhaben = o.ToString();
 
-                    o = reader["DwgName"];
-                    if (o != System.DBNull.Value) pi.DwgName = o.ToString();
+                        o = reader["DwgName"];
+                        if (o != System.DBNull.Value) pi.DwgName = o.ToString();
 
-                    o = reader["EZ"];
-                    if (o != System.DBNull.Value) pi.EZ = o.ToString();
+                        o = reader["EZ"];
+                        if (o != System.DBNull.Value) pi.EZ = o.ToString();
 
-                    projInfos.Add(pi);
+                        projInfos.Add(pi);
+                    }
+                    reader.Close();
                 }
                 myConnection.Close();
             }
@@ -498,18 +517,20 @@ namespace MdbPari
             log.Debug("DeleteKategorienAndZuAbschlag");
             int nrOfDeletedRows = 0;
             // Execute Queries
-            OleDbCommand cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            foreach (var kategorieRecord in kategories)
+            using (var cmd = myConnection.CreateCommand())
             {
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from {0} where KategorieId={1} AND ProjektId={2}", ZU_ABSCHLAG_TABELLE, kategorieRecord.KategorieID, kategorieRecord.ProjektId);
-                nrOfDeletedRows += cmd.ExecuteNonQuery();
-            }
+                cmd.Transaction = transaction;
+                foreach (var kategorieRecord in kategories)
+                {
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from {0} where KategorieId={1} AND ProjektId={2}", ZU_ABSCHLAG_TABELLE, kategorieRecord.KategorieID, kategorieRecord.ProjektId);
+                    nrOfDeletedRows += cmd.ExecuteNonQuery();
+                }
 
-            foreach (var kategorieRecord in kategories)
-            {
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from {0} where KategorieId={1} AND ProjektId={2}", "Kategorie", kategorieRecord.KategorieID, kategorieRecord.ProjektId);
-                nrOfDeletedRows += cmd.ExecuteNonQuery();
+                foreach (var kategorieRecord in kategories)
+                {
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from {0} where KategorieId={1} AND ProjektId={2}", "Kategorie", kategorieRecord.KategorieID, kategorieRecord.ProjektId);
+                    nrOfDeletedRows += cmd.ExecuteNonQuery();
+                }
             }
             return nrOfDeletedRows;
         }
@@ -525,10 +546,11 @@ namespace MdbPari
                 myConnection.Open();
 
                 // Execute Queries
-                OleDbCommand cmd = myConnection.CreateCommand();
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from {0} where ZuAbschlagId={1}", ZU_ABSCHLAG_TABELLE, zuAbschlagRec.ZuAbschlagId);
-                nrOfDeletedRows = cmd.ExecuteNonQuery();
-
+                using (var cmd = myConnection.CreateCommand())
+                {
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from {0} where ZuAbschlagId={1}", ZU_ABSCHLAG_TABELLE, zuAbschlagRec.ZuAbschlagId);
+                    nrOfDeletedRows = cmd.ExecuteNonQuery();
+                }
                 myConnection.Close();
             }
 
@@ -547,22 +569,24 @@ namespace MdbPari
                 var transaction = myConnection.BeginTransaction();
 
                 // Execute Queries
-                OleDbCommand cmd = myConnection.CreateCommand();
-                cmd.Transaction = transaction;
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from Projekt where ProjektId={0}", projektId);
-                NrOfDeletedRows += cmd.ExecuteNonQuery();
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from Kategorie where ProjektId={0}", projektId);
-                NrOfDeletedRows += cmd.ExecuteNonQuery();
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from Raum where ProjektId={0}", projektId);
-                NrOfDeletedRows += cmd.ExecuteNonQuery();
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from GstInfo where ProjektId={0}", projektId);
-                NrOfDeletedRows += cmd.ExecuteNonQuery();
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from ZuAbschlag where ProjektId={0}", projektId);
-                NrOfDeletedRows += cmd.ExecuteNonQuery();
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from Wohnung where ProjektId={0}", projektId);
-                NrOfDeletedRows += cmd.ExecuteNonQuery();
+                using (var cmd = myConnection.CreateCommand())
+                {
+                    cmd.Transaction = transaction;
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from Projekt where ProjektId={0}", projektId);
+                    NrOfDeletedRows += cmd.ExecuteNonQuery();
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from Kategorie where ProjektId={0}", projektId);
+                    NrOfDeletedRows += cmd.ExecuteNonQuery();
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from Raum where ProjektId={0}", projektId);
+                    NrOfDeletedRows += cmd.ExecuteNonQuery();
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from GstInfo where ProjektId={0}", projektId);
+                    NrOfDeletedRows += cmd.ExecuteNonQuery();
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from ZuAbschlag where ProjektId={0}", projektId);
+                    NrOfDeletedRows += cmd.ExecuteNonQuery();
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from Wohnung where ProjektId={0}", projektId);
+                    NrOfDeletedRows += cmd.ExecuteNonQuery();
 
-                transaction.Commit();
+                    transaction.Commit();
+                }
                 myConnection.Close();
             }
 
@@ -767,9 +791,11 @@ namespace MdbPari
                             myConnection.ConnectionString = ConnectionString;
                             myConnection.Open();
 
-                            var cmd = myConnection.CreateCommand();
-                            cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "ALTER TABLE {0} ADD COLUMN {1} {2}", tableInfo.TableName, columnInfo.ColumnName, columnInfo.ColumnType);
-                            cmd.ExecuteNonQuery();
+                            using (var cmd = myConnection.CreateCommand())
+                            {
+                                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "ALTER TABLE {0} ADD COLUMN {1} {2}", tableInfo.TableName, columnInfo.ColumnName, columnInfo.ColumnType);
+                                cmd.ExecuteNonQuery();
+                            }
                             myConnection.Close();
                         }
 
@@ -801,84 +827,95 @@ namespace MdbPari
         #region Private
         private int InsertZuAbschlag(IZuAbschlagRecord zuAbschlag, OleDbConnection myConnection, OleDbTransaction transaction)
         {
-            OleDbCommand cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "INSERT INTO {0} " + "([Beschreibung],[Prozent],[KategorieId],[ProjektId]) "
-                + "VALUES(@Beschreibung,@Prozent,@KategorieId, @ProjektId)", ZU_ABSCHLAG_TABELLE);
+            using (var cmd = myConnection.CreateCommand())
+            {
+                cmd.Transaction = transaction;
+                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "INSERT INTO {0} " + "([Beschreibung],[Prozent],[KategorieId],[ProjektId]) "
+                    + "VALUES(@Beschreibung,@Prozent,@KategorieId, @ProjektId)", ZU_ABSCHLAG_TABELLE);
 
-            // add named parameters
-            cmd.Parameters.AddRange(new OleDbParameter[]
-                           {
+                // add named parameters
+                cmd.Parameters.AddRange(new OleDbParameter[]
+                               {
                                new OleDbParameter("@Beschreibung", zuAbschlag.Beschreibung??Convert.DBNull),
                                new OleDbParameter("@Prozent", zuAbschlag.Prozent),
                                new OleDbParameter("@KategorieId", zuAbschlag.KategorieId),
                                new OleDbParameter("@ProjektId", zuAbschlag.ProjektId),
-                           });
+                               });
 
-            return cmd.ExecuteNonQuery();
+                return cmd.ExecuteNonQuery();
+            }
         }
 
         private int GetHighestId(IZuAbschlagRecord zuAbschlag, OleDbConnection myConnection, OleDbTransaction transaction)
         {
             var zuAbschlagId = -1;
             // Execute Queries
-            var cmd = myConnection.CreateCommand();
-            if (transaction != null) cmd.Transaction = transaction;
-            cmd.CommandText = string.Format(CultureInfo.InvariantCulture,
-                "SELECT ZuAbschlagId FROM {0} where KategorieId=@KategorieId AND ProjektId=@ProjektId ORDER BY ZuAbschlagID DESC",
-                ZU_ABSCHLAG_TABELLE);
-            cmd.Parameters.AddRange(new OleDbParameter[]
-                           {
+            using (var cmd = myConnection.CreateCommand())
+            {
+                if (transaction != null) cmd.Transaction = transaction;
+                cmd.CommandText = string.Format(CultureInfo.InvariantCulture,
+                    "SELECT ZuAbschlagId FROM {0} where KategorieId=@KategorieId AND ProjektId=@ProjektId ORDER BY ZuAbschlagID DESC",
+                    ZU_ABSCHLAG_TABELLE);
+                cmd.Parameters.AddRange(new OleDbParameter[]
+                               {
                                new OleDbParameter("@KategorieId", zuAbschlag.KategorieId),
                                new OleDbParameter("@ProjektId", zuAbschlag.ProjektId),
-                           });
+                               });
 
 
-            var reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                object o = reader["ZuAbschlagId"];
-                zuAbschlagId = (int)o;
+                var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    object o = reader["ZuAbschlagId"];
+                    zuAbschlagId = (int)o;
+                }
+                reader.Close();
             }
             return zuAbschlagId;
         }
 
         private void GetZuAbschlagVorgaben(List<IZuAbschlagVorgabeRecord> zaInfos, OleDbConnection myConnection)
         {
-            var cmd = myConnection.CreateCommand();
-            cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "select * from {0}", "ZuAbschlagVorgabe");
-            var reader = cmd.ExecuteReader();
-            while (reader.Read())
+            using (var cmd = myConnection.CreateCommand())
             {
-                var za = new SimpleZuAbschlagVorgabeRecord();
-                object o = reader["Beschreibung"];
-                if (o != System.DBNull.Value) za.Beschreibung = o.ToString();
-                o = reader["Prozent"];
-                if (o != System.DBNull.Value) za.Prozent = (double)o;
-                zaInfos.Add(za);
+                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "select * from {0}", "ZuAbschlagVorgabe");
+                var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var za = new SimpleZuAbschlagVorgabeRecord();
+                    object o = reader["Beschreibung"];
+                    if (o != System.DBNull.Value) za.Beschreibung = o.ToString();
+                    o = reader["Prozent"];
+                    if (o != System.DBNull.Value) za.Prozent = (double)o;
+                    zaInfos.Add(za);
+                }
+                reader.Close();
             }
         }
 
         private static void GetZuAbschlags(int kategorieId, List<IZuAbschlagRecord> zaInfos, OleDbConnection myConnection)
         {
-            var cmd = myConnection.CreateCommand();
-            cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "select * from {0} where KategorieId={1} order by ZuAbschlagID", "ZuAbschlag", kategorieId);
-            var reader = cmd.ExecuteReader();
-            while (reader.Read())
+            using (var cmd = myConnection.CreateCommand())
             {
-                var za = new SimpleZuAbschlagRecord();
-                object o = reader["Beschreibung"];
-                if (o != System.DBNull.Value) za.Beschreibung = o.ToString();
-                o = reader["Prozent"];
-                if (o != System.DBNull.Value) za.Prozent = (double)o;
-                o = reader["ProjektId"];
-                if (o != System.DBNull.Value) za.ProjektId = (int)o;
-                o = reader["KategorieId"];
-                if (o != System.DBNull.Value) za.KategorieId = (int)o;
-                o = reader["ZuAbschlagId"];
-                if (o != System.DBNull.Value) za.ZuAbschlagId = (int)o;
+                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "select * from {0} where KategorieId={1} order by ZuAbschlagID", "ZuAbschlag", kategorieId);
+                var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var za = new SimpleZuAbschlagRecord();
+                    object o = reader["Beschreibung"];
+                    if (o != System.DBNull.Value) za.Beschreibung = o.ToString();
+                    o = reader["Prozent"];
+                    if (o != System.DBNull.Value) za.Prozent = (double)o;
+                    o = reader["ProjektId"];
+                    if (o != System.DBNull.Value) za.ProjektId = (int)o;
+                    o = reader["KategorieId"];
+                    if (o != System.DBNull.Value) za.KategorieId = (int)o;
+                    o = reader["ZuAbschlagId"];
+                    if (o != System.DBNull.Value) za.ZuAbschlagId = (int)o;
 
-                zaInfos.Add(za);
+                    zaInfos.Add(za);
+                }
+                reader.Close();
             }
         }
 
@@ -891,46 +928,49 @@ namespace MdbPari
                 myConnection.ConnectionString = ConnectionString;
                 myConnection.Open();
 
-                var cmd = myConnection.CreateCommand();
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "select * from Raum where ProjektId={0} order by Top", ProjektId);
-                var reader = cmd.ExecuteReader();
-                while (reader.Read())
+                using (var cmd = myConnection.CreateCommand())
                 {
-                    var raum = new SimpleRaumZaRecord();
-                    object o = reader["ProjektID"];
-                    if (o != System.DBNull.Value) raum.ProjektId = (int)o;
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "select * from Raum where ProjektId={0} order by Top", ProjektId);
+                    var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var raum = new SimpleRaumZaRecord();
+                        object o = reader["ProjektID"];
+                        if (o != System.DBNull.Value) raum.ProjektId = (int)o;
 
-                    o = reader["KategorieId"];
-                    if (o != System.DBNull.Value) raum.KategorieId = (int)o;
+                        o = reader["KategorieId"];
+                        if (o != System.DBNull.Value) raum.KategorieId = (int)o;
 
-                    o = reader["RaumId"];
-                    if (o != System.DBNull.Value) raum.RaumId = (int)o;
+                        o = reader["RaumId"];
+                        if (o != System.DBNull.Value) raum.RaumId = (int)o;
 
-                    o = reader["Top"];
-                    if (o != System.DBNull.Value) raum.Top = o.ToString();
+                        o = reader["Top"];
+                        if (o != System.DBNull.Value) raum.Top = o.ToString();
 
-                    o = reader["Lage"];
-                    if (o != System.DBNull.Value) raum.Lage = o.ToString();
+                        o = reader["Lage"];
+                        if (o != System.DBNull.Value) raum.Lage = o.ToString();
 
-                    o = reader["Raum"];
-                    if (o != System.DBNull.Value) raum.Raum = o.ToString();
+                        o = reader["Raum"];
+                        if (o != System.DBNull.Value) raum.Raum = o.ToString();
 
-                    o = reader["Widmung"];
-                    if (o != System.DBNull.Value) raum.Widmung = o.ToString();
+                        o = reader["Widmung"];
+                        if (o != System.DBNull.Value) raum.Widmung = o.ToString();
 
-                    o = reader["RNW"];
-                    if (o != System.DBNull.Value) raum.RNW = o.ToString();
+                        o = reader["RNW"];
+                        if (o != System.DBNull.Value) raum.RNW = o.ToString();
 
-                    o = reader["Begrundung"];
-                    if (o != System.DBNull.Value) raum.Begrundung = o.ToString();
+                        o = reader["Begrundung"];
+                        if (o != System.DBNull.Value) raum.Begrundung = o.ToString();
 
-                    o = reader["Nutzwert"];
-                    if (o != System.DBNull.Value) raum.Nutzwert = Convert.ToDouble(o);
+                        o = reader["Nutzwert"];
+                        if (o != System.DBNull.Value) raum.Nutzwert = Convert.ToDouble(o);
 
-                    o = reader["Flaeche"];
-                    if (o != System.DBNull.Value) raum.Flaeche = Convert.ToDouble(o);
+                        o = reader["Flaeche"];
+                        if (o != System.DBNull.Value) raum.Flaeche = Convert.ToDouble(o);
 
-                    raumInfos.Add(raum);
+                        raumInfos.Add(raum);
+                    }
+                    reader.Close();
                 }
                 myConnection.Close();
             }
@@ -946,48 +986,51 @@ namespace MdbPari
                 myConnection.ConnectionString = ConnectionString;
                 myConnection.Open();
 
-                var cmd = myConnection.CreateCommand();
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "select * from Raum where ProjektId={0} order by Top", ProjektId);
-                var reader = cmd.ExecuteReader();
-                while (reader.Read())
+                using (var cmd = myConnection.CreateCommand())
                 {
-                    var raum = _Factory.CreateRaumRecord(); // new SimpleRaumRecord();
-                    object o = reader["ProjektID"];
-                    if (o != System.DBNull.Value) raum.ProjektId = (int)o;
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "select * from Raum where ProjektId={0} order by Top", ProjektId);
+                    var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var raum = _Factory.CreateRaumRecord(); // new SimpleRaumRecord();
+                        object o = reader["ProjektID"];
+                        if (o != System.DBNull.Value) raum.ProjektId = (int)o;
 
-                    o = reader["KategorieId"];
-                    if (o != System.DBNull.Value) raum.KategorieId = (int)o;
+                        o = reader["KategorieId"];
+                        if (o != System.DBNull.Value) raum.KategorieId = (int)o;
 
-                    o = reader["RaumId"];
-                    if (o != System.DBNull.Value) raum.RaumId = (int)o;
+                        o = reader["RaumId"];
+                        if (o != System.DBNull.Value) raum.RaumId = (int)o;
 
-                    o = reader["Top"];
-                    if (o != System.DBNull.Value) raum.Top = o.ToString();
+                        o = reader["Top"];
+                        if (o != System.DBNull.Value) raum.Top = o.ToString();
 
-                    o = reader["Lage"];
-                    if (o != System.DBNull.Value) raum.Lage = o.ToString();
+                        o = reader["Lage"];
+                        if (o != System.DBNull.Value) raum.Lage = o.ToString();
 
-                    o = reader["Raum"];
-                    if (o != System.DBNull.Value) raum.Raum = o.ToString();
+                        o = reader["Raum"];
+                        if (o != System.DBNull.Value) raum.Raum = o.ToString();
 
-                    o = reader["Widmung"];
-                    if (o != System.DBNull.Value) raum.Widmung = o.ToString();
+                        o = reader["Widmung"];
+                        if (o != System.DBNull.Value) raum.Widmung = o.ToString();
 
-                    o = reader["RNW"];
-                    if (o != System.DBNull.Value) raum.RNW = o.ToString();
+                        o = reader["RNW"];
+                        if (o != System.DBNull.Value) raum.RNW = o.ToString();
 
-                    o = reader["Begrundung"];
-                    if (o != System.DBNull.Value) raum.Begrundung = o.ToString();
+                        o = reader["Begrundung"];
+                        if (o != System.DBNull.Value) raum.Begrundung = o.ToString();
 
-                    o = reader["Nutzwert"];
-                    if (o != System.DBNull.Value) raum.Nutzwert = Convert.ToDouble(o);
+                        o = reader["Nutzwert"];
+                        if (o != System.DBNull.Value) raum.Nutzwert = Convert.ToDouble(o);
 
-                    o = reader["Flaeche"];
-                    if (o != System.DBNull.Value) raum.Flaeche = Convert.ToDouble(o);
+                        o = reader["Flaeche"];
+                        if (o != System.DBNull.Value) raum.Flaeche = Convert.ToDouble(o);
 
-                    o = reader["AcadHandle"];
-                    if (o != System.DBNull.Value) raum.AcadHandle = o.ToString();
-                    raumInfos.Add(raum);
+                        o = reader["AcadHandle"];
+                        if (o != System.DBNull.Value) raum.AcadHandle = o.ToString();
+                        raumInfos.Add(raum);
+                    }
+                    reader.Close();
                 }
                 myConnection.Close();
             }
@@ -999,12 +1042,14 @@ namespace MdbPari
             log.Debug("DelRaeume");
             int nrOfDeletedRows = 0;
             // Execute Queries
-            OleDbCommand cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            foreach (var raumRecord in raume)
+            using (var cmd = myConnection.CreateCommand())
             {
-                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from {0} where RaumID={1} AND ProjektId={2}", "Raum", raumRecord.RaumId, projektId);
-                nrOfDeletedRows += cmd.ExecuteNonQuery();
+                cmd.Transaction = transaction;
+                foreach (var raumRecord in raume)
+                {
+                    cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from {0} where RaumID={1} AND ProjektId={2}", "Raum", raumRecord.RaumId, projektId);
+                    nrOfDeletedRows += cmd.ExecuteNonQuery();
+                }
             }
 
             return nrOfDeletedRows;
@@ -1015,45 +1060,49 @@ namespace MdbPari
             log.Debug("DelWohnung");
             int nrOfDeletedRows = 0;
             // Execute Queries
-            OleDbCommand cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from Wohnung where ProjektId={0}", projektId);
-            nrOfDeletedRows += cmd.ExecuteNonQuery();
-
+            using (var cmd = myConnection.CreateCommand())
+            {
+                cmd.Transaction = transaction;
+                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "Delete from Wohnung where ProjektId={0}", projektId);
+                nrOfDeletedRows += cmd.ExecuteNonQuery();
+            }
             return nrOfDeletedRows;
         }
 
         private void InsertWohnung(IWohnungRecord wohnung, OleDbConnection myConnection, OleDbTransaction transaction)
         {
             // Execute Queries
-            OleDbCommand cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            cmd.CommandText = "INSERT INTO Wohnung " + "([Top],[Typ],[Widmung],[Nutzwert],[ProjektId]) " + "VALUES(@Top,@Typ,@Widmung,@Nutzwert,@ProjektId)";
+            using (var cmd = myConnection.CreateCommand())
+            {
+                cmd.Transaction = transaction;
+                cmd.CommandText = "INSERT INTO Wohnung " + "([Top],[Typ],[Widmung],[Nutzwert],[ProjektId]) " + "VALUES(@Top,@Typ,@Widmung,@Nutzwert,@ProjektId)";
 
-            // add named parameters
-            cmd.Parameters.AddRange(new OleDbParameter[]
-                           {
+                // add named parameters
+                cmd.Parameters.AddRange(new OleDbParameter[]
+                               {
                                new OleDbParameter("@Top", wohnung.Top??Convert.DBNull),
                                new OleDbParameter("@Typ", wohnung.Typ??Convert.DBNull),
                                new OleDbParameter("@Widmung", wohnung.Widmung??Convert.DBNull),
                                new OleDbParameter("@Nutzwert", wohnung.Nutzwert??Convert.DBNull),
                                new OleDbParameter("@ProjektId", wohnung.ProjektId),
-                           });
+                               });
 
-            cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQuery();
+            }
         }
 
         private void InsertRaum(IRaumRecord raum, OleDbConnection myConnection, OleDbTransaction transaction)
         {
             // Execute Queries
-            OleDbCommand cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            cmd.CommandText = "INSERT INTO Raum " + "([Top],[Lage],[Raum],[Widmung],[RNW],[Begrundung],[Nutzwert],[Flaeche],[ProjektId],[KategorieId],[AcadHandle]) "
-                + "VALUES(@Top,@Lage,@Raum, @Widmung, @RNW, @Begrundung, @Nutzwert,@Flaeche, @ProjektId, @KategorieId,@AcadHandle)";
+            using (var cmd = myConnection.CreateCommand())
+            {
+                cmd.Transaction = transaction;
+                cmd.CommandText = "INSERT INTO Raum " + "([Top],[Lage],[Raum],[Widmung],[RNW],[Begrundung],[Nutzwert],[Flaeche],[ProjektId],[KategorieId],[AcadHandle]) "
+                    + "VALUES(@Top,@Lage,@Raum, @Widmung, @RNW, @Begrundung, @Nutzwert,@Flaeche, @ProjektId, @KategorieId,@AcadHandle)";
 
-            // add named parameters
-            cmd.Parameters.AddRange(new OleDbParameter[]
-                           {
+                // add named parameters
+                cmd.Parameters.AddRange(new OleDbParameter[]
+                               {
                                new OleDbParameter("@Top", raum.Top??Convert.DBNull),
                                new OleDbParameter("@Lage", raum.Lage??Convert.DBNull),
                                new OleDbParameter("@Raum", raum.Raum??Convert.DBNull),
@@ -1065,22 +1114,24 @@ namespace MdbPari
                                new OleDbParameter("@ProjektId", raum.ProjektId),
                                new OleDbParameter("@KategorieId", raum.KategorieId),
                                new OleDbParameter("@AcadHandle", raum.AcadHandle??Convert.DBNull),
-                           });
+                               });
 
-            cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQuery();
+            }
 
         }
 
         private void InsertKategorieAndSetKategorieIdToKat(IKategorieRecord kat, OleDbConnection myConnection, OleDbTransaction transaction)
         {
             // Execute Queries
-            OleDbCommand cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            cmd.CommandText = "INSERT INTO Kategorie " + "([Top],[Lage],[Widmung],[RNW],[Begrundung],[Nutzwert],[ProjektId]) " + "VALUES(@Top,@Lage, @Widmung, @RNW, @Begrundung, @Nutzwert, @ProjektId)";
+            using (var cmd = myConnection.CreateCommand())
+            {
+                cmd.Transaction = transaction;
+                cmd.CommandText = "INSERT INTO Kategorie " + "([Top],[Lage],[Widmung],[RNW],[Begrundung],[Nutzwert],[ProjektId]) " + "VALUES(@Top,@Lage, @Widmung, @RNW, @Begrundung, @Nutzwert, @ProjektId)";
 
-            // add named parameters
-            cmd.Parameters.AddRange(new OleDbParameter[]
-                           {
+                // add named parameters
+                cmd.Parameters.AddRange(new OleDbParameter[]
+                               {
                                new OleDbParameter("@Top", kat.Top??Convert.DBNull),
                                new OleDbParameter("@Lage", kat.Lage??Convert.DBNull),
                                new OleDbParameter("@Widmung", kat.Widmung??Convert.DBNull),
@@ -1088,9 +1139,10 @@ namespace MdbPari
                                new OleDbParameter("@Begrundung", kat.Begrundung??Convert.DBNull),
                                new OleDbParameter("@Nutzwert", kat.Nutzwert),
                                new OleDbParameter("@ProjektId", kat.ProjektId),
-                           });
+                               });
 
-            cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQuery();
+            }
             kat.KategorieID = GetKatId(kat, myConnection, transaction);
             if (kat.KategorieID == -1)
             {
@@ -1108,25 +1160,28 @@ namespace MdbPari
         {
             int katId = -1;
             // Execute Queries
-            var cmd = myConnection.CreateCommand();
-            if (transaction != null) cmd.Transaction = transaction;
-            cmd.CommandText = "select KategorieId from Kategorie where Top=@Top and Lage=@Lage and Widmung=@Widmung and RNW=@RNW and Begrundung=@Begrundung and ProjektId=@ProjektId";
-            cmd.Parameters.AddRange(new OleDbParameter[]
-                           {
+            using (var cmd = myConnection.CreateCommand())
+            {
+                if (transaction != null) cmd.Transaction = transaction;
+                cmd.CommandText = "select KategorieId from Kategorie where Top=@Top and Lage=@Lage and Widmung=@Widmung and RNW=@RNW and Begrundung=@Begrundung and ProjektId=@ProjektId";
+                cmd.Parameters.AddRange(new OleDbParameter[]
+                               {
                                new OleDbParameter("@Top", kat.Top??Convert.DBNull),
                                new OleDbParameter("@Lage", kat.Lage??Convert.DBNull),
                                new OleDbParameter("@Widmung", kat.Widmung??Convert.DBNull),
                                new OleDbParameter("@RNW", kat.RNW??Convert.DBNull),
                                new OleDbParameter("@Begrundung", kat.Begrundung??Convert.DBNull),
                                new OleDbParameter("@ProjektId", kat.ProjektId),
-                           });
+                               });
 
 
-            var reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                object o = reader["KategorieId"];
-                katId = (int)o;
+                var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    object o = reader["KategorieId"];
+                    katId = (int)o;
+                }
+                reader.Close();
             }
             return katId;
         }
@@ -1134,21 +1189,23 @@ namespace MdbPari
         private static void InsertProjekt(IProjektInfo projektInfo, OleDbConnection myConnection, OleDbTransaction transaction = null)
         {
             // Execute Queries
-            OleDbCommand cmd = myConnection.CreateCommand();
-            if (transaction != null) cmd.Transaction = transaction;
-            cmd.CommandText = "INSERT INTO Projekt " + "([Bauvorhaben], [DwgName],[EZ],[DwgPrefix],[Katastralgemeinde]) " + "VALUES(@Bauvorhaben, @DwgName, @EZ,@DwgPrefix,@Katastralgemeinde)";
+            using (var cmd = myConnection.CreateCommand())
+            {
+                if (transaction != null) cmd.Transaction = transaction;
+                cmd.CommandText = "INSERT INTO Projekt " + "([Bauvorhaben], [DwgName],[EZ],[DwgPrefix],[Katastralgemeinde]) " + "VALUES(@Bauvorhaben, @DwgName, @EZ,@DwgPrefix,@Katastralgemeinde)";
 
-            // add named parameters
-            cmd.Parameters.AddRange(new OleDbParameter[]
-                           {
+                // add named parameters
+                cmd.Parameters.AddRange(new OleDbParameter[]
+                               {
                                new OleDbParameter("@Bauvorhaben", projektInfo.Bauvorhaben??Convert.DBNull),
                                new OleDbParameter("@DwgName", projektInfo.DwgName??Convert.DBNull),
                                new OleDbParameter("@EZ", projektInfo.EZ??Convert.DBNull),
                                new OleDbParameter("@DwgPrefix", projektInfo.DwgPrefix??Convert.DBNull),
                                new OleDbParameter("@Katastralgemeinde", projektInfo.Katastralgemeinde??Convert.DBNull),
-                           });
+                               });
 
-            cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQuery();
+            }
         }
 
         private static void InsertSubInfos(IProjektInfo projektInfo, OleDbConnection myConnection, OleDbTransaction transaction = null)
@@ -1156,28 +1213,30 @@ namespace MdbPari
 
             foreach (var subInfo in projektInfo.SubInfos)
             {
-                OleDbCommand cmd = myConnection.CreateCommand();
-                if (transaction != null) cmd.Transaction = transaction;
-                cmd.CommandText = "INSERT INTO GstInfo " + "([Gstnr], [Flaeche],[AcadHandle],[ProjektId]) " + "VALUES(@Gstnr, @Flaeche, @AcadHandle,@ProjektId)";
+                using (var cmd = myConnection.CreateCommand())
+                {
+                    if (transaction != null) cmd.Transaction = transaction;
+                    cmd.CommandText = "INSERT INTO GstInfo " + "([Gstnr], [Flaeche],[AcadHandle],[ProjektId]) " + "VALUES(@Gstnr, @Flaeche, @AcadHandle,@ProjektId)";
 
-                // add named parameters
-                cmd.Parameters.AddRange(new OleDbParameter[]
-                           {
+                    // add named parameters
+                    cmd.Parameters.AddRange(new OleDbParameter[]
+                               {
                                new OleDbParameter("@Gstnr", subInfo.Gstnr??Convert.DBNull),
                                new OleDbParameter("@Flaeche", subInfo.Flaeche??Convert.DBNull),
                                new OleDbParameter("@AcadHandle", subInfo.AcadHandle??Convert.DBNull),
                                new OleDbParameter("@ProjektId", projektInfo.ProjektId),
-                           });
+                               });
 
-                // todo: trennung von add parameter und parameter-value
-                // Beispiel:
-                //command.Parameters.Add("@Schlagwort", System.Data.SqlDbType.NVarChar, 256);
-                //command.Parameters.Add("@SwId", System.Data.SqlDbType.Int);
+                    // todo: trennung von add parameter und parameter-value
+                    // Beispiel:
+                    //command.Parameters.Add("@Schlagwort", System.Data.SqlDbType.NVarChar, 256);
+                    //command.Parameters.Add("@SwId", System.Data.SqlDbType.Int);
 
-                //command.Parameters["@Schlagwort"].Value = schlagWort.ValueString;
-                //command.Parameters["@SwId"].Value = schlagWort.SwId;
+                    //command.Parameters["@Schlagwort"].Value = schlagWort.ValueString;
+                    //command.Parameters["@SwId"].Value = schlagWort.SwId;
 
-                cmd.ExecuteNonQuery();
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
 
@@ -1185,14 +1244,17 @@ namespace MdbPari
         {
             int projektId = -1;
             // Execute Queries
-            var cmd = myConnection.CreateCommand();
-            if (transaction != null) cmd.Transaction = transaction;
-            cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "select ProjektId from {0} where Bauvorhaben='{1}'", "Projekt", projectInfo.Bauvorhaben);
-            var reader = cmd.ExecuteReader();
-            if (reader.Read())
+            using (var cmd = myConnection.CreateCommand())
             {
-                object o = reader["ProjektId"];
-                projektId = (int)o;
+                if (transaction != null) cmd.Transaction = transaction;
+                cmd.CommandText = string.Format(CultureInfo.InvariantCulture, "select ProjektId from {0} where Bauvorhaben='{1}'", "Projekt", projectInfo.Bauvorhaben);
+                var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    object o = reader["ProjektId"];
+                    projektId = (int)o;
+                }
+                reader.Close();
             }
             return projektId;
         }
@@ -1292,13 +1354,15 @@ namespace MdbPari
         {
             log.Info("ConsistRaumKatTop");
             var raumInfos = new List<IRaumRecord>();
-            var cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            //cmd.CommandText =
-            //    "SELECT Raum.*, Kategorie.KategorieID, Kategorie.[Top] FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[Top] = Kategorie.[Top]";
-            cmd.CommandText =
-                "SELECT Raum.*, Kategorie.* FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[Top] = Kategorie.[Top]";
-            ConsistExecuteCmdAndAddToRaumInfos(cmd, raumInfos, "Top");
+            using (var cmd = myConnection.CreateCommand())
+            {
+                cmd.Transaction = transaction;
+                //cmd.CommandText =
+                //    "SELECT Raum.*, Kategorie.KategorieID, Kategorie.[Top] FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[Top] = Kategorie.[Top]";
+                cmd.CommandText =
+                    "SELECT Raum.*, Kategorie.* FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[Top] = Kategorie.[Top]";
+                ConsistExecuteCmdAndAddToRaumInfos(cmd, raumInfos, "Top");
+            }
             foreach (var rec in raumInfos)
             {
                 log.Warn(string.Format(CultureInfo.CurrentCulture, "Konsistenz: Unterschiedliche Top für Raum und Kategorie: Raum: {0}, Kategorie: {1}", rec.ToString(), (rec.Kategorie != null) ? rec.Kategorie.ToString() : ""));
@@ -1310,13 +1374,15 @@ namespace MdbPari
         {
             log.Info("ConsistRaumKatLage");
             var raumInfos = new List<IRaumRecord>();
-            var cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            cmd.CommandText =
-                "SELECT Raum.*, Kategorie.* FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[Lage] = Kategorie.[Lage]";
-            //cmd.CommandText =
-            //    "SELECT Raum.*, Kategorie.KategorieID, Kategorie.[Lage] FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[Lage] = Kategorie.[Lage]";
-            ConsistExecuteCmdAndAddToRaumInfos(cmd, raumInfos, "Lage");
+            using (var cmd = myConnection.CreateCommand())
+            {
+                cmd.Transaction = transaction;
+                cmd.CommandText =
+                    "SELECT Raum.*, Kategorie.* FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[Lage] = Kategorie.[Lage]";
+                //cmd.CommandText =
+                //    "SELECT Raum.*, Kategorie.KategorieID, Kategorie.[Lage] FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[Lage] = Kategorie.[Lage]";
+                ConsistExecuteCmdAndAddToRaumInfos(cmd, raumInfos, "Lage");
+            }
             foreach (var rec in raumInfos)
             {
                 log.Warn(string.Format(CultureInfo.CurrentCulture, "Konsistenz: Unterschiedliche Lage für Raum und Kategorie: Raum: {0}, Kategorie: {1}", rec.ToString(), (rec.Kategorie != null) ? rec.Kategorie.ToString() : ""));
@@ -1328,11 +1394,13 @@ namespace MdbPari
         {
             log.Info("ConsistRaumKatWidmung");
             var raumInfos = new List<IRaumRecord>();
-            var cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            cmd.CommandText =
-                "SELECT Raum.*, Kategorie.* FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[Widmung] = Kategorie.[Widmung]";
-            ConsistExecuteCmdAndAddToRaumInfos(cmd, raumInfos, "Widmung");
+            using (var cmd = myConnection.CreateCommand())
+            {
+                cmd.Transaction = transaction;
+                cmd.CommandText =
+                    "SELECT Raum.*, Kategorie.* FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[Widmung] = Kategorie.[Widmung]";
+                ConsistExecuteCmdAndAddToRaumInfos(cmd, raumInfos, "Widmung");
+            }
             foreach (var rec in raumInfos)
             {
                 log.Warn(string.Format(CultureInfo.CurrentCulture, "Konsistenz: Unterschiedliche Widmung für Raum und Kategorie: Raum: {0}, Kategorie: {1}", rec.ToString(), (rec.Kategorie != null) ? rec.Kategorie.ToString() : ""));
@@ -1344,13 +1412,15 @@ namespace MdbPari
         {
             log.Info("ConsistRaumKatBegrundung");
             var raumInfos = new List<IRaumRecord>();
-            var cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            cmd.CommandText =
-                "SELECT Raum.*, Kategorie.* FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[Begrundung] = Kategorie.[Begrundung]";
-            //cmd.CommandText =
-            //    "SELECT Raum.*, Kategorie.KategorieID, Kategorie.[Begrundung] FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[Begrundung] = Kategorie.[Begrundung]";
-            ConsistExecuteCmdAndAddToRaumInfos(cmd, raumInfos, "Begrundung");
+            using (var cmd = myConnection.CreateCommand())
+            {
+                cmd.Transaction = transaction;
+                cmd.CommandText =
+                    "SELECT Raum.*, Kategorie.* FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[Begrundung] = Kategorie.[Begrundung]";
+                //cmd.CommandText =
+                //    "SELECT Raum.*, Kategorie.KategorieID, Kategorie.[Begrundung] FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[Begrundung] = Kategorie.[Begrundung]";
+                ConsistExecuteCmdAndAddToRaumInfos(cmd, raumInfos, "Begrundung");
+            }
             foreach (var rec in raumInfos)
             {
                 log.Warn(string.Format(CultureInfo.CurrentCulture, "Konsistenz: Unterschiedliche Begründung für Raum und Kategorie: Raum: {0}, Kategorie: {1}", rec.ToString(), (rec.Kategorie != null) ? rec.Kategorie.ToString() : ""));
@@ -1362,13 +1432,15 @@ namespace MdbPari
         {
             log.Info("ConsistRaumKatProjektId");
             var raumInfos = new List<IRaumRecord>();
-            var cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            cmd.CommandText =
-                "SELECT Raum.*, Kategorie.* FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[ProjektID] = Kategorie.[ProjektID]";
-            //cmd.CommandText =
-            //    "SELECT Raum.*, Kategorie.KategorieID, Kategorie.[ProjektID] FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[ProjektID] = Kategorie.[ProjektID]";
-            ConsistExecuteCmdAndAddToRaumInfos(cmd, raumInfos, "ProjektId");
+            using (var cmd = myConnection.CreateCommand())
+            {
+                cmd.Transaction = transaction;
+                cmd.CommandText =
+                    "SELECT Raum.*, Kategorie.* FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[ProjektID] = Kategorie.[ProjektID]";
+                //cmd.CommandText =
+                //    "SELECT Raum.*, Kategorie.KategorieID, Kategorie.[ProjektID] FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE NOT Raum.[ProjektID] = Kategorie.[ProjektID]";
+                ConsistExecuteCmdAndAddToRaumInfos(cmd, raumInfos, "ProjektId");
+            }
             foreach (var rec in raumInfos)
             {
                 log.Warn(string.Format(CultureInfo.CurrentCulture, "Konsistenz: Unterschiedliche ProjektId für Raum und Kategorie: Raum: {0}, Kategorie: {1}", rec.ToString(), (rec.Kategorie != null) ? rec.Kategorie.ToString() : ""));
@@ -1380,11 +1452,13 @@ namespace MdbPari
         {
             log.Info("ConsistRaumKatNutzwert");
             var raumInfos = new List<IRaumRecord>();
-            var cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            cmd.CommandText =
-                "SELECT Raum.*, Kategorie.* FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE abs(Raum.Nutzwert-Kategorie.Nutzwert)>0.0001";
-            ConsistExecuteCmdAndAddToRaumInfos(cmd, raumInfos, "Nutzwert");
+            using (var cmd = myConnection.CreateCommand())
+            {
+                cmd.Transaction = transaction;
+                cmd.CommandText =
+                    "SELECT Raum.*, Kategorie.* FROM Raum INNER JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE abs(Raum.Nutzwert-Kategorie.Nutzwert)>0.0001";
+                ConsistExecuteCmdAndAddToRaumInfos(cmd, raumInfos, "Nutzwert");
+            }
             foreach (var rec in raumInfos)
             {
                 log.Warn(string.Format(CultureInfo.CurrentCulture, "Konsistenz: Unterschiedlicher Nutzwert für Raum und Kategorie: Raum: {0}, Kategorie: {1}", rec.ToString(), (rec.Kategorie != null) ? rec.Kategorie.ToString() : ""));
@@ -1464,25 +1538,26 @@ namespace MdbPari
 
                     o = reader["Kategorie.Top"];
                     if (o != System.DBNull.Value) kat.Top = o.ToString();
-                
+
                     o = reader["Kategorie.Lage"];
                     if (o != System.DBNull.Value) kat.Lage = o.ToString();
-                    
+
                     o = reader["Kategorie.Widmung"];
                     if (o != System.DBNull.Value) kat.Widmung = o.ToString();
-                    
+
                     o = reader["Kategorie.Begrundung"];
                     if (o != System.DBNull.Value) kat.Begrundung = o.ToString();
-                    
+
                     o = reader["Kategorie.Nutzwert"];
                     if (o != System.DBNull.Value) kat.Nutzwert = Convert.ToDouble(o);
-                    
+
                     o = reader["Kategorie.ProjektID"];
                     if (o != System.DBNull.Value) kat.ProjektId = (int)o;
-                    
+
                     raumInfos.Add(raum);
                 }
             }
+            reader.Close();
         }
 
         private void ConsistExecuteCmdAndAddToRaumInfos(OleDbCommand cmd, List<IRaumRecord> raumInfos, string fieldName, string abc)
@@ -1567,6 +1642,7 @@ namespace MdbPari
                     raumInfos.Add(raum);
                 }
             }
+            reader.Close();
         }
 
         private string ConsistGetReadName(string prefix, string name, string fieldName)
@@ -1582,42 +1658,45 @@ namespace MdbPari
         {
             log.Info("ConsistKatMissingRaum");
             var katInfos = new List<IKategorieRecord>();
-            var cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            cmd.CommandText =
-                "SELECT Kategorie.* FROM Raum RIGHT JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE Raum.KategorieID Is Null";
-            var reader = cmd.ExecuteReader();
-            if (reader != null)
+            using (var cmd = myConnection.CreateCommand())
             {
-                while (reader.Read())
+                cmd.Transaction = transaction;
+                cmd.CommandText =
+                    "SELECT Kategorie.* FROM Raum RIGHT JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE Raum.KategorieID Is Null";
+                var reader = cmd.ExecuteReader();
+                if (reader != null)
                 {
-                    var kat = _Factory.CreateKategorie();
-                    object o = reader["ProjektID"];
-                    if (o != System.DBNull.Value) kat.ProjektId = (int)o;
+                    while (reader.Read())
+                    {
+                        var kat = _Factory.CreateKategorie();
+                        object o = reader["ProjektID"];
+                        if (o != System.DBNull.Value) kat.ProjektId = (int)o;
 
-                    o = reader["KategorieID"];
-                    if (o != System.DBNull.Value) kat.KategorieID = (int)o;
+                        o = reader["KategorieID"];
+                        if (o != System.DBNull.Value) kat.KategorieID = (int)o;
 
-                    o = reader["Top"];
-                    if (o != System.DBNull.Value) kat.Top = o.ToString();
+                        o = reader["Top"];
+                        if (o != System.DBNull.Value) kat.Top = o.ToString();
 
-                    o = reader["Lage"];
-                    if (o != System.DBNull.Value) kat.Lage = o.ToString();
+                        o = reader["Lage"];
+                        if (o != System.DBNull.Value) kat.Lage = o.ToString();
 
-                    o = reader["Widmung"];
-                    if (o != System.DBNull.Value) kat.Widmung = o.ToString();
+                        o = reader["Widmung"];
+                        if (o != System.DBNull.Value) kat.Widmung = o.ToString();
 
-                    o = reader["RNW"];
-                    if (o != System.DBNull.Value) kat.RNW = o.ToString();
+                        o = reader["RNW"];
+                        if (o != System.DBNull.Value) kat.RNW = o.ToString();
 
-                    o = reader["Begrundung"];
-                    if (o != System.DBNull.Value) kat.Begrundung = o.ToString();
+                        o = reader["Begrundung"];
+                        if (o != System.DBNull.Value) kat.Begrundung = o.ToString();
 
-                    o = reader["Nutzwert"];
-                    if (o != System.DBNull.Value) kat.Nutzwert = Convert.ToDouble(o);
+                        o = reader["Nutzwert"];
+                        if (o != System.DBNull.Value) kat.Nutzwert = Convert.ToDouble(o);
 
-                    katInfos.Add(kat);
+                        katInfos.Add(kat);
+                    }
                 }
+                reader.Close();
             }
             foreach (var rec in katInfos)
             {
@@ -1629,23 +1708,25 @@ namespace MdbPari
         {
             log.Info("ConsistZuAbschlagMissingKat");
             var zuAbschlagInfos = new List<int>();
-            var cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            cmd.CommandText =
-                "SELECT ZuAbschlag.* FROM ZuAbschlag LEFT JOIN Kategorie ON ZuAbschlag.KategorieId = Kategorie.KategorieID WHERE Kategorie.KategorieID Is Null";
-            var reader = cmd.ExecuteReader();
-            if (reader != null)
+            using (var cmd = myConnection.CreateCommand())
             {
-                while (reader.Read())
+                cmd.Transaction = transaction;
+                cmd.CommandText =
+                    "SELECT ZuAbschlag.* FROM ZuAbschlag LEFT JOIN Kategorie ON ZuAbschlag.KategorieId = Kategorie.KategorieID WHERE Kategorie.KategorieID Is Null";
+                var reader = cmd.ExecuteReader();
+                if (reader != null)
                 {
-                    object o = reader["ZuAbschlagId"];
-                    if (o != System.DBNull.Value)
+                    while (reader.Read())
                     {
-                        zuAbschlagInfos.Add((int)o);
+                        object o = reader["ZuAbschlagId"];
+                        if (o != System.DBNull.Value)
+                        {
+                            zuAbschlagInfos.Add((int)o);
+                        }
                     }
                 }
+                reader.Close();
             }
-
             foreach (var rec in zuAbschlagInfos)
             {
                 log.Warn(string.Format(CultureInfo.CurrentCulture, "Konsistenz: ZuAbschlag ohne Kategorie: Id={0}", rec.ToString()));
@@ -1657,53 +1738,56 @@ namespace MdbPari
         {
             log.Info("ConsistRaumMissingKat");
             var raumInfos = new List<IRaumRecord>();
-            var cmd = myConnection.CreateCommand();
-            cmd.Transaction = transaction;
-            cmd.CommandText =
-                "SELECT Raum.* FROM Raum LEFT JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE Kategorie.KategorieID Is Null";
-            var reader = cmd.ExecuteReader();
-            if (reader != null)
+            using (var cmd = myConnection.CreateCommand())
             {
-                while (reader.Read())
+                cmd.Transaction = transaction;
+                cmd.CommandText =
+                    "SELECT Raum.* FROM Raum LEFT JOIN Kategorie ON Raum.KategorieID = Kategorie.KategorieID WHERE Kategorie.KategorieID Is Null";
+                var reader = cmd.ExecuteReader();
+                if (reader != null)
                 {
-                    var raum = _Factory.CreateRaumRecord();
-                    object o = reader["ProjektID"];
-                    if (o != System.DBNull.Value) raum.ProjektId = (int)o;
+                    while (reader.Read())
+                    {
+                        var raum = _Factory.CreateRaumRecord();
+                        object o = reader["ProjektID"];
+                        if (o != System.DBNull.Value) raum.ProjektId = (int)o;
 
-                    o = reader["KategorieId"];
-                    if (o != System.DBNull.Value) raum.KategorieId = (int)o;
+                        o = reader["KategorieId"];
+                        if (o != System.DBNull.Value) raum.KategorieId = (int)o;
 
-                    o = reader["RaumId"];
-                    if (o != System.DBNull.Value) raum.RaumId = (int)o;
+                        o = reader["RaumId"];
+                        if (o != System.DBNull.Value) raum.RaumId = (int)o;
 
-                    o = reader["Top"];
-                    if (o != System.DBNull.Value) raum.Top = o.ToString();
+                        o = reader["Top"];
+                        if (o != System.DBNull.Value) raum.Top = o.ToString();
 
-                    o = reader["Lage"];
-                    if (o != System.DBNull.Value) raum.Lage = o.ToString();
+                        o = reader["Lage"];
+                        if (o != System.DBNull.Value) raum.Lage = o.ToString();
 
-                    o = reader["Raum"];
-                    if (o != System.DBNull.Value) raum.Raum = o.ToString();
+                        o = reader["Raum"];
+                        if (o != System.DBNull.Value) raum.Raum = o.ToString();
 
-                    o = reader["Widmung"];
-                    if (o != System.DBNull.Value) raum.Widmung = o.ToString();
+                        o = reader["Widmung"];
+                        if (o != System.DBNull.Value) raum.Widmung = o.ToString();
 
-                    o = reader["RNW"];
-                    if (o != System.DBNull.Value) raum.RNW = o.ToString();
+                        o = reader["RNW"];
+                        if (o != System.DBNull.Value) raum.RNW = o.ToString();
 
-                    o = reader["Begrundung"];
-                    if (o != System.DBNull.Value) raum.Begrundung = o.ToString();
+                        o = reader["Begrundung"];
+                        if (o != System.DBNull.Value) raum.Begrundung = o.ToString();
 
-                    o = reader["Nutzwert"];
-                    if (o != System.DBNull.Value) raum.Nutzwert = Convert.ToDouble(o);
+                        o = reader["Nutzwert"];
+                        if (o != System.DBNull.Value) raum.Nutzwert = Convert.ToDouble(o);
 
-                    o = reader["Flaeche"];
-                    if (o != System.DBNull.Value) raum.Flaeche = Convert.ToDouble(o);
+                        o = reader["Flaeche"];
+                        if (o != System.DBNull.Value) raum.Flaeche = Convert.ToDouble(o);
 
-                    o = reader["AcadHandle"];
-                    if (o != System.DBNull.Value) raum.AcadHandle = o.ToString();
-                    raumInfos.Add(raum);
+                        o = reader["AcadHandle"];
+                        if (o != System.DBNull.Value) raum.AcadHandle = o.ToString();
+                        raumInfos.Add(raum);
+                    }
                 }
+                reader.Close();
             }
             foreach (var rec in raumInfos)
             {

@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="MdbName" Type="System.String" Scope="User">
-      <Value Profile="(Default)">D:\abc\NFL_Bewertung\Parifizierung.accdb</Value>
+      <Value Profile="(Default)">C:\Workspaces\Parifizierung\Data\Parifizierung\Datenbank\Parifizierung.accdb</Value>
     </Setting>
   </Settings>
 </SettingsFile>

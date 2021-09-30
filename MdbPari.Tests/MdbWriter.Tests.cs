@@ -27,9 +27,8 @@ namespace MdbPari.Tests
         {
             var factory = new Factory();
             IPariDatabase database = factory.CreatePariDatabase();
-
             var nrOfFields = database.CheckExistingFields();
-
         }
+
     }
 }
